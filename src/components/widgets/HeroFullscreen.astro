@@ -1,0 +1,70 @@
+---
+import type { Hero as Props } from '~/types';
+
+const {
+  title = await Astro.slots.render('title'),
+  subtitle = await Astro.slots.render('subtitle'),
+  tagline = await Astro.slots.render('tagline'),
+  imageSrc = '',        // Široka desktop slika
+  imageMobileSrc = '',  // Uspravna mobilna slika
+  textPosition = 'bottom',
+} = Astro.props;
+
+const positionClass = textPosition === 'top' 
+  ? 'justify-start pt-24 md:pt-32' 
+  : textPosition === 'bottom' 
+    ? 'justify-end pb-24 md:pb-32' 
+    : 'justify-center';
+---
+
+<section class="relative h-screen w-full overflow-hidden bg-white not-prose p-0 m-0">
+  
+  {/* Pozadinske slike */}
+  <div class="absolute inset-0 z-0 w-full h-full">
+    
+    {/* 1. SLIKA ZA MOBILNI: Vidi se uvek (block), ali se sakriva na računarima (md:hidden) */}
+    <img 
+      src={imageMobileSrc || imageSrc} { /* Ako zaboravite mobilnu sliku, uzeće desktop verziju */ }
+      alt="Hero background mobile" 
+      class="w-full h-full object-cover object-center block md:hidden border-none p-0 m-0 bg-white"
+      loading="eager"
+      decoding="sync"
+    />
+
+    {/* 2. SLIKA ZA DESKTOP: Sakrivena na mobilnom (hidden), ali se prikazuje na računarima (md:block) */}
+    <img 
+      src={imageSrc} 
+      alt="Hero background desktop" 
+      class="w-full h-full object-cover object-center hidden md:block border-none p-0 m-0 bg-white"
+      loading="eager"
+      decoding="sync"
+    />
+
+    {/* Tamni sloj preko obe slike radi čitljivosti teksta */}
+    <div class="absolute inset-0 bg-black/20"></div>
+  </div>
+
+  {/* Sadržaj (Tekst) preko slike */}
+  <div class:list={['absolute inset-0 z-10 w-full h-full flex flex-col items-center px-4 sm:px-6 text-center', positionClass]}>
+    <div class="w-full max-w-4xl mx-auto flex flex-col items-center">
+      
+      {tagline && (
+        <p class="text-base text-secondary dark:text-blue-400 font-bold tracking-wide uppercase mb-3 font-heading" set:html={tagline} />
+      )}
+      
+      {title && (
+        <h1 class="text-3xl md:text-5xl font-bold tracking-tight text-white mb-6 leading-tight font-heading" set:html={title} />
+      )}
+      
+      {subtitle && (
+        <p class="text-lg md:text-xl text-slate-200 max-w-2xl font-normal" set:html={subtitle} />
+      )}
+
+      <div class="mt-8">
+        <slot name="actions" />
+      </div>
+      
+    </div>
+  </div>
+
+</section>

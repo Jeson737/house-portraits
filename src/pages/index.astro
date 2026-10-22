@@ -1,0 +1,454 @@
+---
+
+import DropboxContactForm from '~/components/widgets/DropboxContactForm.astro'; 
+
+import Layout from '~/layouts/LandingLayout.astro';
+
+import Hero2 from '~/components/widgets/Hero2.astro';
+import Note from '~/components/widgets/Note.astro';
+import Content from '~/components/widgets/Content.astro';
+import ContentDark from '~/components/widgets/ContentDark.astro'; // Za tamno plavi vidget
+import Features from '~/components/widgets/Features.astro';
+import Steps2 from '~/components/widgets/Steps2.astro';
+import Stats from '~/components/widgets/Stats.astro';
+import Pricing from '~/components/widgets/Pricing.astro';
+import FAQs from '~/components/widgets/FAQs.astro';
+import CallToAction from '~/components/widgets/CallToAction.astro';
+import Quote from '~/components/widgets/Quote.astro';
+import { getPermalink } from '~/utils/permalinks';
+
+import HeroFullscreen from '~/components/widgets/HeroFullscreen.astro';
+import heroBg from '~/assets/images/pexel-jpeg-50.jpg'; // Vaša lokalna slika
+import Button from '~/components/ui/Button.astro';
+
+// Uverite se da putanja počinje sa tildom (~) i ima tačan naziv i ekstenziju slike
+import digitalImg from '~/assets/images/digital-portrait.png';
+import digitalImg2 from '~/assets/images/framed-portrait.jpg';
+
+
+import customHouse from '~/assets/images/hero-bg.jpg';
+import customH from '~/assets/images/Uramljena-slika.jpg';
+import customH3 from '~/assets/images/Custom-house3.png';
+
+
+import Gallery from '~/components/widgets/Gallery.astro';
+
+// 1. Automatski uvoz svih slika (uvozimo ceo objekat, BEZ skraćivanja na .src)
+const slikovniFajlovi = import.meta.glob<{ default: ImageMetadata }>('~/assets/images/galerija/*.{jpeg,jpg,png,webp,svg}', { eager: true });
+
+// 2. Pretvaranje u format koji vidget razume
+const uvezeneSlike = Object.entries(slikovniFajlovi).map(([putanja, podaci]) => {
+  // Izvlačimo naziv fajla za lep natpis ispod slike
+  const nazivFajla = putanja.split('/').pop()?.split('.').shift() || '';
+  const lepNaziv = nazivFajla.replace(/[-_]/g, ' ').replace(/^\w/, (c) => c.toUpperCase());
+
+  return {
+    src: podaci.default, // KLJUČNA IZMENA: Prosleđujemo ceo objekat slike, a NE podaci.default.src
+    alt: lepNaziv,
+    caption: lepNaziv,
+  };
+});
+
+
+
+
+// A long-form sales page that sells one thing: the long-form sales page itself,
+// as a method. Every block is in the order a persuasive page uses (problem,
+// solution, benefits, process, proof, offer, guarantee, objections, close) and
+// says why it sits there. Replace the copy with your product; keep the order.
+
+const metadata = {
+  title: 'Long-Form Sales Landing Page Example & Guide',
+  description:
+    'A complete long-form sales landing page built with AstroWind: problem, solution, benefits, proof, offer, guarantee and FAQ, with notes on why each block sells. Free Astro template.',
+  openGraph: { type: 'website' },
+};
+
+const faqs = [
+  {
+    title: ' What do I need to get started?',
+    description:
+      'll you need is a photo of the house. After placing your order, simply send us the image and we’ll take care of the rest.',
+  },
+  {
+    title: 'What kind of photos work best?',
+    description:
+      ' Clear, high-resolution photos taken from the front of the house work best. Don’t worry if it’s not perfect — we can still create a beautiful portrait from most images.',
+  },
+  {
+    title: 'How long does it take to receive the portrait',
+    description:
+      'Digital portraits are delivered within 2–3 days. Printed and framed versions typically arrive within 5–7 days across the USA.',
+  },
+  {
+    title: 'Can I request changes to the portrait?',
+    description:
+      'Yes! We offer 1–2 free revisions to make sure your portrait looks exactly how you want it.',
+  },
+  {
+    title: 'Do you ship across the United States?',
+    description:
+      'Yes, we deliver anywhere in the USA. Your portrait will arrive ready to gift in premium packaging.',
+  },
+  {
+    title: 'Can I add my branding or a message?',
+    description:
+      'Absolutely. You can include your name, your client’s name, or a custom message to make the gift even more personal.',
+  },
+  {
+    title: 'What makes this a great closing gift ',
+    description:
+      'Unlike generic gifts, a custom house portrait is personal and emotional. It creates a lasting memory for your clients — and keeps you top of mind for future referrals.',
+  },
+  {
+    title: 'Do I need to do anything after ordering?',
+    description:
+      'Yes — after checkout, you’ll receive instructions on how to send us the house photo and any personalization details. ',
+  },
+  {
+    title: 'Is this really worth it for my business?',
+    description:
+      'Many realtors see multiple referrals from a single portrait. It’s a small investment that helps you stand out and build long-term client relationships.',
+  },
+  {
+    title: 'Still have questions? ',
+    description:
+      'Contact us anytime — we’re happy to help you create the perfect client gift. ',
+  },
+  {
+    title: '---- ',
+    description:
+      '+++++ ',
+  },
+  {
+    title: '---- ',
+    description:
+      ' +++++ ',
+  },
+  
+];
+---
+
+<Layout metadata={metadata}>
+
+  <!-- 1. Hero: the big promise and the first ask -->
+
+<HeroFullscreen
+  title="Turn Every Closing Into a Lasting Memory"
+  subtitle="Delight your clients with custom house portraits"
+  tagline=""
+  imageSrc={`${import.meta.env.BASE_URL}/images/Untitled.jpg`}
+  imageMobileSrc={`${import.meta.env.BASE_URL}/images/Untitled-mobilni.jpg`}
+  textPosition="bottom"
+>
+  <Button
+    slot="actions"
+    variant="primary"
+    text="Start Your First Portrait"
+    href="#offer"
+  />
+</HeroFullscreen>
+
+
+
+  <Hero2
+    title="The Closing Gift That Turns Clients Into Lifelong Referral Machines"
+    subtitle="Don’t let your hard work be forgotten with a generic gift basket. Gift your clients a beautiful, custom watercolor house portrait of their new home—the ultimate keepsake they will proudly display forever."
+     
+    image={{
+      src: customHouse,
+      alt: ' ',
+    }}
+  />
+
+ 
+  <!-- 2. The problem, in the reader's words -->
+
+  <ContentDark
+    id="problem"
+    tagline="The problem"
+    title="Most Closing Gifts Are Forgotten "
+    classes={{
+    container: '!py-8 md:!py-12', 
+  }}
+    items={[
+      {
+        title: 'The "Poof" Factor (Zero Shelf Life)',
+        description:
+          'Gift cards get spent, flowers wither in a week, and wine bottles get drained over a single weekend. Once they are gone, your client’s memory of your gesture fades with them.',
+      },
+      {
+        title: 'The Branding Blunder (Feels Transactional)',
+        description:
+          'Nobody wants to display a cutting board or a knife set with a massive brokerage logo in their kitchen. Heavily branded items feel like cold marketing, not a genuine celebration of their milestone.',
+      },
+      {
+        title: 'The Closet Trap (Zero Visibility)',
+        description:
+          'Generic gift baskets or tech gadgets usually end up tucked away in a cabinet or re-gifted. If your gift isn’t visible, it’s not working to keep you top-of-mind.',
+      },
+    ]}
+    image={{
+      src: customH,
+      alt: 'A person alone at a desk, thinking, in front of a laptop',
+    }}
+  >
+    classes={{ 
+      container: 'text-white dark:text-white py-6 md:py-10',  
+      title: 'text-white dark:text-white',     // Glavni naslov postaje beo
+      subtitle: 'text-slate-200 dark:text-slate-200' // Podnaslov postaje svetlo-siv
+    }}
+     
+         <Fragment slot="content">
+      <h3 class="text-2xl font-bold tracking-tight dark:text-white sm:text-3xl mb-2">Name the pain before the cure</h3>
+      You spend hundreds of dollars to say "thank you," but standard gifts just don’t build long-term loyalty. Here is 
+      why traditional closing gifts fail your business:
+    </Fragment>
+    <Fragment slot="bg">
+  <div class="absolute inset-0 bg-[rgb(34_10_125)]"></div>
+</Fragment>
+
+  </ContentDark>
+
+  <!-- 3. The solution, introduced as a shift -->
+
+  <Content
+    id="solution"
+    isReversed
+    tagline="The solution"
+    title="Most Closing Gifts Are Forgotten.This One Isn’t" 
+     // LINIJE ZA PROMENU RAZMAKA IZMEĐU WIDGETS:
+  classes={{
+    container: '!py-8 md:!py-12', 
+  }}
+    items={[
+      {
+        title: 'Unmatched Emotional ROI',
+        description: 'Buying a home is one of the biggest milestones in your client\'s life. By capturing their new home in a beautiful, hand-painted watercolor, you show them you care about their story, not just the commission.',
+      },
+      {
+        title: 'The Ultimate Conversation Starter',
+        description: 'This portrait won\'t end up hidden in a drawer. It hangs proudly in their living room or entryway. Every time they host a housewarming party or a family dinner, guests will ask about it—and your clients will proudly tell the story of how their agent gave it to them.',
+      },
+      {
+        title: 'Lifetime "Top-of-Mind" Marketing',
+        description: 'While other agents have to constantly spend money on cold ads and mailers to stay relevant, your gift stays on their wall for decades. It keeps your name at the top of their mind for every future move and every friend who needs a Realtor.',
+      },
+    ]}
+    image={{
+      src: customH3,
+      alt: 'A team drawing a plan on a whiteboard',
+    }}
+  >
+    <Fragment slot="content">
+      <h3 class="text-2xl font-bold tracking-tight dark:text-white sm:text-3xl mb-2">Sell the mechanism</h3>
+      A custom watercolor portrait of their new home is more than a gift — it’s a lifelong piece of art that locks in your client relationships forever.
+    </Fragment>
+  </Content>
+
+
+  <!-- 4. Benefits: what changes for the buyer -->
+
+  <Features
+    id="benefits"
+    tagline="Benefits"
+    title="Why Realtors Love Our Custom House Portraits"
+    subtitle=" Giving a personalized portrait to your clients is more than just a gift — it’s an
+    investment in your reputation and business growth. Here’s why our portraits are the
+    perfect choice:"
+    columns={3}
+    classes={{
+    container: '!py-8 md:!py-12', 
+  }}
+    items={[
+      {
+        title: 'Memorable Closing Gift',
+        description: 'Make every closing unforgettable. Clients remember thoughtful gestures, and a custom portrait leaves a lasting impression.',
+        icon: 'tabler:check',
+      
+      },
+      {
+        title: 'More Referrals',
+        description: 'One portrait can spark multiple referrals. When clients love their gift, they naturally share your name with friends and family.',
+        icon: 'tabler:check',
+      },
+      {
+        title: 'Premium Brand Image',
+        description:
+          'Position yourself as a top realtor. Personalized gifts elevate your professional image and show you go the extra mile.',
+        icon: 'tabler:check',
+      },
+      {
+        title: 'Zero Effort',
+        description: 'The order and the headlines carry the sale; visuals can change without rewriting the pitch.',
+        icon: 'tabler:check', 
+      },
+      {
+        title: 'Emotional Connection',
+        description: 'Unlike wine or gift cards, a portrait represents the emotional heart of their journey. It shows you see them as people, not just a transaction.',
+        icon: 'tabler:check',
+      },
+      {
+        title: 'Market Differentiation',
+        description: 'Stand out from the crowd. While other agents give generic gift baskets, your unique gift sets a new standard in client care.',
+        icon: 'tabler:check',
+      },
+    ]}
+  />
+
+  <!-- 5. How it works: the process, numbered -->
+
+  <Steps2
+    id="process"
+    tagline="How it works"
+    title="Create a Custom Portrait in 3 Simple Steps"
+    subtitle="The reading order of this page. Each step is a section you are scrolling past right now."
+    callToAction={{ text: 'Start Your First Portrait', href: '#offer', variant: 'primary' }}
+    items={[
+      {
+        title: 'Upload the House Photo',
+        description: ' Send us a high-quality photo of your client’s new home. The better the photo, the more detailed and beautiful the portrait.',
+      },
+      {
+        title: 'We Create the Portrait',
+        description:
+          'Our professional artists transform the photo into a one-of-a-kind portrait, blending digital precision with artistic touches for a stunning result.',
+        icon: 'tabler:number-2',
+      },
+      {
+        title: 'Gift to Your Client',
+        description:
+          'Deliver the framed portrait to your client and watch their reaction. Happy clients leadto repeat business and referrals.',
+        icon: 'tabler:number-3',
+      },
+    ]}
+  />
+
+ <Features
+
+  id="benefits"
+    title="The Ultimate Referral Machine"
+    subtitle=" You don’t just want to close a deal; you want to secure your next three clients. When your clients hang this custom piece in their home, it becomes a focal point. Every dinner party, family gathering, and housewarming event is now an opportunity for them to pitch you to their friends."
+
+ />
+
+
+  <!-- 3. Prikazivanje Gallery vidgeta na stranici -->
+<Gallery
+  title="Gallery"
+  subtitle="Sve slike ispod su automatski učitane iz vašeg projektnog foldera."
+  columns={3}
+  lightbox={true}
+  images={uvezeneSlike}
+/>
+
+  <Quote
+    id="proof"
+    quote="My clients were blown away. One portrait brought me 3 new referrals from a single closing!"
+    name="Sarah M., California"
+    job=" "
+    rating={5}
+    image={{
+      src: 'https://images.unsplash.com/photo-1618835962148-cf177563c6c0?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=930&q=80',
+      alt: 'Portrait placeholder for a customer testimonial',
+    }}
+  />
+
+  <!-- 7. The offer: price after value, one highlighted choice -->
+
+  <Pricing
+  id="offer"
+  tagline="The offer"
+  title="Choose Your Perfect Gift"
+  subtitle="No confusing plans or hidden fees. Choose the package that fits your needs"
+  prices={[
+    {
+      title: 'Digital Portrait',
+      subtitle: 'Receive a high-resolution digital portrait',
+      price: 49,
+      period: ' ',
+      image: digitalImg, // <-- IZMENA: Bez navodnika, prosleđujemo uvezenu sliku sa vrha
+      items: [
+        { description: 'The core outcome, stated plainly' },
+        { description: 'What is included, no jargon' },
+        { description: 'A limit that makes the next plan make sense' },
+      ],
+      callToAction: { text: 'View Details', href: getPermalink('/contact') },
+    },
+    {
+      title: 'Print Package',
+      subtitle: 'Digital + print',
+      price: 79,
+      period: ' ',
+      image: digitalImg, // <-- IZMENA: Bez navodnika
+      items: [
+        { description: 'Everything in Starter' },
+        { description: 'The benefit most buyers actually want' },
+        { description: 'The reason this is the recommended choice' },
+        { description: 'A guarantee or support line' },
+      ],
+      callToAction: { text: 'View Details', href: getPermalink('/contact') },
+    },
+    {
+      title: 'Framed Portrait',
+      subtitle: 'Professionally printed and framed, ready to gift',
+      price: 129,
+      period: ' ',
+      image: digitalImg2, // <-- IZMENA: Bez navodnika
+      items: [
+        { description: 'Everything in Professional' },
+        { description: 'Seats, roles or volume' },
+        { description: 'An anchor that makes Professional feel reasonable' },
+      ],
+      callToAction: { text: 'View Details', href: getPermalink('/contact') },
+      hasRibbon: true,
+      ribbonTitle: 'recommended',
+    },
+    {
+      title: 'Premium Gift',
+      subtitle: 'Personalized card, and premium packaging',
+      price: 179,
+      period: ' ',
+      image: digitalImg, // <-- IZMENA: Bez navodnika
+      items: [
+        { description: 'Everything in Professional' },
+        { description: 'Seats, roles or volume' },
+        { description: 'An anchor that makes Professional feel reasonable' },
+      ],
+      callToAction: { text: 'View Details', href: getPermalink('/contact') },
+      hasRibbon: true,
+      ribbonTitle: 'recommended',
+    },
+  ]}
+/>
+
+
+  <!-- 8. Guarantee: risk reversal right after the price -->
+
+
+  <Note
+    title="FOMO:"
+    description=" Don’t let other agents impress first — create a memorable gift today."
+    icon="none"
+    class="text-5xl"
+  />
+
+
+
+  <!-- 9. Objections, also exposed as FAQPage structured data -->
+
+  <FAQs
+    id="faq"
+    tagline="FAQ"
+    title="Frequently Asked Questions"
+    subtitle="Answered here so the page, not a salesperson, handles them. The same answers feed a FAQ rich result in search."
+    items={faqs}
+    schema
+  />
+
+  <!-- 10. Close: the same ask, one last time -->
+
+<DropboxContactForm id="free-trial" classes={{ container: '!py-20 md:!py-28' }} />
+
+
+</Layout>

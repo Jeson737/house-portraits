@@ -1,0 +1,137 @@
+---
+import { Icon } from 'astro-icon/components';
+import Image from '~/components/common/Image.astro';
+import Headline from '~/components/ui/Headline.astro';
+import WidgetWrapper from '~/components/ui/WidgetWrapper.astro';
+
+const {
+  title = await Astro.slots.render('title'),
+  subtitle = await Astro.slots.render('subtitle'),
+  tagline = await Astro.slots.render('tagline'),
+  items = [],
+  orientation = 'vertical',
+  isReversed = false,
+  id,
+  isDark = false,
+  classes = {},
+  bg = await Astro.slots.render('bg'),
+} = Astro.props;
+
+const vertical = orientation === 'vertical';
+const uid = id ?? `tabs-${Math.random().toString(36).slice(2, 8)}`;
+---
+
+<WidgetWrapper id={id} isDark={isDark} containerClass={`max-w-7xl mx-auto ${classes?.container ?? ''}`} bg={bg}>
+  <Headline title={title} subtitle={subtitle} tagline={tagline} classes={classes?.headline as Record<string, string>} />
+
+  <aw-tabs class:list={['block mx-auto max-w-5xl', vertical ? 'lg:grid lg:grid-cols-12 lg:gap-12 lg:items-center' : '']}>
+    
+    <!-- 1. GORNJA / LEVA NAVIGACIJA: Dugmići za prebacivanje kartica -->
+    <div
+      role="tablist"
+      aria-orientation={vertical ? 'vertical' : 'horizontal'}
+      class:list={[
+        vertical
+          ? ['flex flex-col gap-3 lg:col-span-4', isReversed ? 'lg:order-2' : '']
+          : 'mb-10 flex flex-wrap justify-center gap-4 border-b border-gray-200 dark:border-slate-700 pb-4',
+      ]}
+    >
+      {
+        items.map(({ title: tabTitle, icon }, index) => (
+          <button
+            type="button"
+            role="tab"
+            id={`${uid}-tab-${index}`}
+            aria-controls={`${uid}-panel-${index}`}
+            aria-selected={index === 0 ? 'true' : 'false'}
+            tabindex={index === 0 ? 0 : -1}
+            class="flex items-center gap-3 px-5 py-3 rounded-xl border border-gray-200 dark:border-slate-700 font-bold text-sm transition text-left aria-selected:bg-primary aria-selected:border-primary aria-selected:text-white hover:bg-gray-50 dark:hover:bg-slate-800"
+          >
+            {icon && <Icon name={icon} class="h-5 w-5 text-current shrink-0" />}
+            <span>{tabTitle}</span>
+          </button>
+        ))
+      }
+    </div>
+
+    <!-- 2. DONJI / DESNI DEO: Sadržaj aktivnog taba (Slika na vrhu, tekst ispod nje) -->
+    <div class:list={[vertical ? ['lg:col-span-8 bg-white dark:bg-slate-900 rounded-2xl p-8 border border-gray-100 dark:border-slate-800 shadow-sm'] : 'bg-white dark:bg-slate-900 rounded-2xl p-8 border border-gray-100 dark:border-slate-800 shadow-sm max-w-2xl mx-auto']}>
+      {
+        items.map(({ title: tabTitle, description, image }, index) => (
+          <div
+            role="tabpanel"
+            id={`${uid}-panel-${index}`}
+            aria-labelledby={`${uid}-tab-${index}`}
+            tabindex="0"
+            hidden={index !== 0}
+            class="flex flex-col items-center text-center outline-none"
+          >
+            <!-- Smanjena slika sa kontrolisanim proporcijama -->
+            {image && (
+              <div class="w-full max-w-md mx-auto mb-6 overflow-hidden rounded-xl shadow-md">
+                {typeof image === 'string' ? (
+                  <Fragment set:html={image} />
+                ) : (
+                  <Image
+                    class="w-full h-64 object-cover"
+                    widths={[]}
+                    sizes="(max-width: 768px) 100vw, 450px"
+                    width={450}
+                    height={250}
+                    layout="constrained"
+                    format="webp"
+                    loading={index === 0 ? 'eager' : 'lazy'}
+                    alt={tabTitle ?? ''}
+                    {...image}
+                  />
+                )}
+              </div>
+            )}
+            
+            <!-- Tekst ispod slike -->
+            {description && (
+              <div class="mt-4 max-w-xl">
+                <p class="text-base text-muted leading-relaxed text-gray-600 dark:text-gray-300" set:html={description} />
+              </div>
+            )}
+          </div>
+        ))
+      }
+    </div>
+  </aw-tabs>
+</WidgetWrapper>
+
+<script>
+  class AwTabs extends HTMLElement {
+    connectedCallback() {
+      const tabs = [...this.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
+      const panels = [...this.querySelectorAll<HTMLElement>('[role="tabpanel"]')];
+      const select = (index: number, focus = false) => {
+        tabs.forEach((tab, i) => {
+          const active = i === index;
+          tab.setAttribute('aria-selected', String(active));
+          tab.tabIndex = active ? 0 : -1;
+          panels[i].hidden = !active;
+        });
+        if (focus) tabs[index].focus();
+      };
+      tabs.forEach((tab, index) => {
+        tab.addEventListener('click', () => select(index));
+        tab.addEventListener('keydown', (event) => {
+          const keys: Record<string, number> = {
+            ArrowRight: index + 1,
+            ArrowDown: index + 1,
+            ArrowLeft: index - 1,
+            ArrowUp: index - 1,
+            Home: 0,
+            End: tabs.length - 1,
+          };
+          if (!(event.key in keys)) return;
+          event.preventDefault();
+          select((keys[event.key] + tabs.length) % tabs.length, true);
+        });
+      });
+    }
+  }
+  if (!customElements.get('aw-tabs')) customElements.define('aw-tabs', AwTabs);
+</script>

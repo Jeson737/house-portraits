@@ -1,0 +1,156 @@
+---
+import { Icon } from 'astro-icon/components';
+import Image from '~/components/common/Image.astro';
+import Headline from '~/components/ui/Headline.astro';
+import WidgetWrapper from '~/components/ui/WidgetWrapper.astro';
+import type { Gallery as Props } from '~/types';
+
+// Image grid with an optional lightbox built on the native <dialog>: no
+// library, keyboard friendly (Escape closes, arrows navigate), works without
+// JavaScript (the images are simply not clickable).
+
+const {
+  title = await Astro.slots.render('title'),
+  subtitle = await Astro.slots.render('subtitle'),
+  tagline = await Astro.slots.render('tagline'),
+  images = [],
+  columns = 3,
+  lightbox = true,
+
+  id,
+  isDark = false,
+  classes = {},
+  bg = await Astro.slots.render('bg'),
+} = Astro.props;
+
+const columnsClass =
+  columns === 4 ? 'sm:grid-cols-2 lg:grid-cols-4' : columns === 2 ? 'sm:grid-cols-2' : 'sm:grid-cols-2 lg:grid-cols-3';
+---
+
+<WidgetWrapper id={id} isDark={isDark} containerClass={`max-w-6xl mx-auto ${classes?.container ?? ''}`} bg={bg}>
+  <Headline title={title} subtitle={subtitle} tagline={tagline} classes={classes?.headline as Record<string, string>} />
+
+  <aw-gallery>
+    <ul class:list={['grid grid-cols-1 gap-4 md:gap-6 list-none', columnsClass]}>
+      {
+        images.map(({ src, alt, caption, href }, index) => (
+          <li class="intersect-once intersect-quarter motion-safe:md:opacity-0 motion-safe:md:intersect:animate-fade">
+            <figure>
+              <button
+                type="button"
+                class="group block w-full overflow-hidden rounded-lg bg-gray-100 dark:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                data-aw-gallery-open={lightbox ? index : undefined}
+                disabled={!lightbox}
+                aria-label={lightbox ? `Open image: ${alt || caption || index + 1}` : undefined}
+              >
+                <Image
+                  class="aspect-[4/3] w-full object-cover transition group-hover:scale-[1.03]"
+                  widths={[400, 768, 1024, 1600]} {/* DODATE SU VEĆE REZOLUCIJE ZA LIGHTBOX */}
+                  sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 400px"
+                  width={400}
+                  height={300}
+                  layout="cover"
+                  format="webp"
+                  src={src}
+                  alt={alt || ''}
+                />
+              </button>
+              
+            </figure>
+          </li>
+        ))
+      }
+    </ul>
+
+        {
+      lightbox && (
+        <dialog
+          class="m-auto h-[90vh] w-[90vw] max-w-5xl rounded-lg bg-transparent p-0 backdrop:bg-black/80 backdrop:backdrop-blur-sm open:flex open:flex-col justify-center items-center"
+          aria-label="Image viewer"
+        >
+          <form method="dialog" class="absolute right-4 top-4 z-10">
+            <button
+              type="submit"
+              class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80 transition"
+              aria-label="Close"
+            >
+              <Icon name="tabler:x" class="h-5 w-5" />
+            </button>
+          </form>
+          <button
+            type="button"
+            class="absolute left-4 top-1/2 z-10 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80 transition"
+            data-aw-gallery-prev
+            aria-label="Previous image"
+          >
+            <Icon name="tabler:chevron-left" class="h-5 w-5" />
+          </button>
+          <button
+            type="button"
+            class="absolute right-4 top-1/2 z-10 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80 transition"
+            data-aw-gallery-next
+            aria-label="Next image"
+          >
+            <Icon name="tabler:chevron-right" class="h-5 w-5" />
+          </button>
+          
+          {/* Slika sada zauzima punu širinu i visinu unutar velikog dijaloga */}
+          <div class="flex items-center justify-center w-full h-[80vh] p-4">
+            <img data-aw-gallery-img class="max-h-full max-w-full w-auto h-auto rounded-lg object-contain" alt="" />
+          </div>
+          
+          
+        </dialog>
+      )
+    }
+
+  </aw-gallery>
+</WidgetWrapper>
+
+<script>
+  class AwGallery extends HTMLElement {
+    connectedCallback() {
+      const dialog = this.querySelector<HTMLDialogElement>('dialog');
+      if (!dialog) return;
+      const buttons = [...this.querySelectorAll<HTMLButtonElement>('[data-aw-gallery-open]')];
+      const img = dialog.querySelector<HTMLImageElement>('[data-aw-gallery-img]')!;
+      
+      let current = 0;
+              const show = (index: number) => {
+        current = (index + buttons.length) % buttons.length;
+        const source = buttons[current].querySelector('img');
+        if (!source) return;
+        
+        // Izvlačimo sve dostupne rezolucije iz srcset-a
+        const candidates = (source.srcset || '')
+          .split(',')
+          .map((c) => c.trim().split(' ')[0])
+          .filter(Boolean);
+        
+        // Ako postoje veće rezolucije (poput 1600px), uzimamo najveću. U suprotnom uzimamo puni src.
+        img.src = candidates[candidates.length - 1] || source.currentSrc || source.src;
+        img.alt = source.alt;
+
+        // LINIJA ZA CAPTION.TEXTCONTENT JE POTPUNO UKLONJENA ODAVDE
+      };
+
+      buttons.forEach((button, index) =>
+        button.addEventListener('click', () => {
+          show(index);
+          dialog.showModal();
+        })
+      );
+      dialog.querySelector('[data-aw-gallery-prev]')?.addEventListener('click', () => show(current - 1));
+      dialog.querySelector('[data-aw-gallery-next]')?.addEventListener('click', () => show(current + 1));
+      dialog.addEventListener('keydown', (event) => {
+        if (event.key === 'ArrowLeft') show(current - 1);
+        if (event.key === 'ArrowRight') show(current + 1);
+      });
+      // Click on the backdrop closes the viewer.
+      dialog.addEventListener('click', (event) => {
+        if (event.target === dialog) dialog.close();
+      });
+    }
+  }
+  if (!customElements.get('aw-gallery')) customElements.define('aw-gallery', AwGallery);
+</script>
